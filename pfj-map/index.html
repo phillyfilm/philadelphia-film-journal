@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>This Week in Philly Film — The Philadelphia Film Journal</title>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600&display=swap">
+
+<style>
+:root {
+  --paper:  #F7F3E9;
+  --ink:    #1A1814;
+  --navy:   #1F3A5F;
+  --rule:   #D5CCB8;
+  --muted:  #6B6255;
+  --sans:   ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+*, *::before, *::after { box-sizing: inherit; }
+
+html, body { height: 100%; margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "The Silver Editorial", "Bodoni Moda", Georgia, "Times New Roman", serif;
+  display: flex;
+  flex-direction: column;
+}
+
+header { padding: 1.1rem 1rem .75rem; text-align: center; border-bottom: 1px solid var(--rule); }
+.masthead {
+  margin: 0;
+  font-size: clamp(1.5rem, 4.2vw, 2.4rem);
+  font-weight: 600;
+  letter-spacing: .01em;
+  line-height: 1.1;
+}
+.subhead {
+  margin: .3rem 0 0;
+  font-size: clamp(.82rem, 2vw, 1rem);
+  font-style: italic;
+  color: var(--muted);
+}
+
+.weekbar {
+  display: flex; align-items: center; justify-content: center; gap: .9rem;
+  padding: .6rem 1rem; border-bottom: 1px solid var(--rule);
+}
+.weekbar button {
+  font: inherit; font-size: 1.1rem; line-height: 1;
+  background: none; border: 1px solid var(--rule); border-radius: 2px;
+  color: var(--navy); padding: .3rem .6rem; cursor: pointer;
+}
+.weekbar button:hover { background: rgba(31,58,95,.07); }
+.weekbar button:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+#weekLabel { font-size: clamp(.9rem, 2.4vw, 1.1rem); min-width: 13ch; text-align: center; }
+
+.controls {
+  display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center;
+  padding: .5rem 1rem; font-family: var(--sans); font-size: .8rem; color: var(--muted);
+  border-bottom: 1px solid var(--rule);
+}
+.controls label { display: inline-flex; align-items: center; gap: .4rem; cursor: pointer; }
+
+main { flex: 1 1 auto; display: flex; min-height: 0; }
+#map { flex: 1 1 auto; min-height: 320px; background: #e9e4d8; }
+
+#listPanel {
+  width: 330px; flex: 0 0 330px; overflow-y: auto;
+  border-left: 1px solid var(--rule); padding: .9rem 1rem 2rem;
+}
+#listPanel h2 {
+  font-size: .95rem; font-weight: 600; margin: 0 0 .7rem;
+  padding-bottom: .4rem; border-bottom: 1px solid var(--rule);
+}
+.venue-entry { margin-bottom: 1.1rem; }
+.venue-entry h3 { margin: 0 0 .15rem; font-size: .95rem; font-weight: 600; }
+.venue-entry .where { font-family: var(--sans); font-size: .72rem; color: var(--muted); }
+.venue-entry ul { list-style: none; margin: .35rem 0 0; padding: 0; }
+.venue-entry li { font-size: .88rem; line-height: 1.45; margin-bottom: .2rem; }
+.times { font-family: var(--sans); font-size: .74rem; color: var(--navy); }
+.more { font-style: italic; color: var(--muted); font-size: .84rem; }
+
+.leaflet-popup-content-wrapper { border-radius: 2px; background: var(--paper); }
+.leaflet-popup-content { margin: .8rem .9rem; font-family: inherit; width: 250px !important; }
+.card-name { font-size: 1.02rem; font-weight: 600; margin: 0 0 .1rem; }
+.card-where { font-family: var(--sans); font-size: .72rem; color: var(--muted); margin: 0 0 .5rem; }
+.card-list { list-style: none; margin: 0; padding: 0; }
+.card-list li { font-size: .9rem; line-height: 1.4; margin-bottom: .35rem; }
+.card-link {
+  display: inline-block; margin-top: .45rem; font-family: var(--sans); font-size: .74rem;
+  color: var(--navy);
+}
+
+.notice {
+  margin: 0; padding: .5rem 1rem; text-align: center;
+  font-family: var(--sans); font-size: .76rem;
+  background: #efe7d2; color: #6a5a34; border-bottom: 1px solid var(--rule);
+}
+.notice[hidden] { display: none; }
+
+footer {
+  padding: .5rem 1rem; text-align: center;
+  font-family: var(--sans); font-size: .68rem; color: var(--muted);
+  border-top: 1px solid var(--rule);
+}
+
+@media (max-width: 760px) {
+  main { flex-direction: column; }
+  #map { flex: 0 0 56vh; }
+  #listPanel { width: auto; flex: 1 1 auto; border-left: 0; border-top: 1px solid var(--rule); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 class="masthead">Philadelphia Film Journal</h1>
+  <p class="subhead">This Week in Philly Film</p>
+</header>
+
+<p class="notice" id="notice" hidden></p>
+
+<div class="weekbar">
+  <button id="prevWeek" type="button" aria-label="Previous week">&#8592;</button>
+  <span id="weekLabel">Loading…</span>
+  <button id="nextWeek" type="button" aria-label="Next week">&#8594;</button>
+</div>
+
+<div class="controls">
+  <label><input type="checkbox" id="showCommunity"> Include community &amp; outdoor screenings</label>
+</div>
+
+<main>
+  <div id="map"></div>
+  <aside id="listPanel"><h2>Venues showing this week</h2><div id="listBody"></div></aside>
+</main>
+
+<footer>Screenings at independent, repertory and institutional venues across the five-county region.</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script>
+/* ------------------------------------------------------------------
+   Time handling. Mirrors pfj_ingest/model.py exactly. A bare hour is
+   afternoon or evening, because cinemas don't screen at 7:30am; a
+   morning showing has to say "10:30am". Change one side, change both.
+------------------------------------------------------------------- */
+const CLOCK = /^\s*(\d{1,2})\s*(?::\s*(\d{2}))?\s*(?:([ap])\.?\s*m?\.?)?\s*$/i;
+
+function parseTime(value) {
+  if (value == null) return null;
+  const match = String(value).trim().match(CLOCK);
+  if (!match) return null;
+  let hour = parseInt(match[1], 10);
+  const minute = parseInt(match[2] || '0', 10);
+  const meridiem = (match[3] || '').toLowerCase();
+  if (minute > 59) return null;
+  if (meridiem === 'a') {
+    if (hour === 12) hour = 0; else if (hour > 12) return null;
+  } else if (meridiem === 'p') {
+    if (hour < 12) hour += 12; else if (hour > 12) return null;
+  } else {
+    if (hour > 23) return null;
+    if (hour > 0 && hour < 12) hour += 12;
+  }
+  return hour * 60 + minute;
+}
+
+function formatTime(value) {
+  const minutes = parseTime(value);
+  if (minutes === null) return String(value).trim();
+  const hour = Math.floor(minutes / 60), minute = minutes % 60;
+  const suffix = hour < 12 ? 'am' : 'pm';
+  return `${hour % 12 || 12}:${String(minute).padStart(2, '0')}${suffix}`;
+}
+
+function timeRank(value) {
+  const minutes = parseTime(value);
+  return minutes === null ? 10000 : minutes;
+}
+
+/* ---------------------------- week maths ---------------------------- */
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function mondayOf(date) {
+  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const shift = (d.getDay() + 6) % 7;      // Monday-start weeks
+  d.setDate(d.getDate() - shift);
+  return d;
+}
+function addDays(date, n) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+function weekLabel(monday) {
+  const sunday = addDays(monday, 6);
+  const left = `${MONTHS[monday.getMonth()].slice(0,3)} ${monday.getDate()}`;
+  const right = monday.getMonth() === sunday.getMonth()
+    ? `${sunday.getDate()}` : `${MONTHS[sunday.getMonth()].slice(0,3)} ${sunday.getDate()}`;
+  return `${left}–${right}`;
+}
+
+/* ------------------------------- state ------------------------------ */
+const state = { venues: [], events: [], monday: mondayOf(new Date()), community: false };
+let map, layer;
+
+function show(message) {
+  const el = document.getElementById('notice');
+  el.textContent = message;
+  el.hidden = !message;
+}
+
+async function load() {
+  try {
+    const [venuesResponse, eventsResponse] = await Promise.all([
+      fetch('data/venues.json', { cache: 'no-cache' }),
+      fetch('data/events.json', { cache: 'no-cache' })
+    ]);
+    if (!venuesResponse.ok || !eventsResponse.ok) throw new Error('data files not found');
+    const venueData = await venuesResponse.json();
+    const eventData = await eventsResponse.json();
+    state.venues = venueData.venues.filter(v => v.inScope && v.lat != null);
+    state.events = eventData.events || [];
+    if (eventData.sample) {
+      show('Sample listings. Real data replaces these once the ingest pipeline has venue credentials.');
+    }
+  } catch (err) {
+    show('Could not load the listings. Opening this file directly from disk won’t work — ' +
+         'serve the folder (python3 -m http.server) or view it on GitHub Pages.');
+  }
+}
+
+/* -------------------------------- map ------------------------------- */
+const TILES = [
+  { url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '© OpenStreetMap contributors' },
+  { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Esri' },
+  { url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Esri' }
+];
+
+function addTiles(index) {
+  if (index >= TILES.length) {
+    show('The base map isn’t loading. The listings below are unaffected.');
+    return;
+  }
+  let failures = 0;
+  const source = TILES[index];
+  const tiles = L.tileLayer(source.url, {
+    maxZoom: 18, attribution: source.attribution
+  });
+  tiles.on('tileerror', () => {
+    failures += 1;
+    if (failures === 6) {                 // a handful of misses, not one
+      map.removeLayer(tiles);
+      addTiles(index + 1);
+    }
+  });
+  tiles.addTo(map);
+}
+
+function dotRadius() {
+  const zoom = map.getZoom();
+  if (zoom <= 9)  return 6;
+  if (zoom <= 11) return 8;
+  if (zoom <= 13) return 10;
+  return 12;
+}
+
+function visibleEvents() {
+  const start = isoDate(state.monday), end = isoDate(addDays(state.monday, 6));
+  return state.events.filter(e =>
+    e.date >= start && e.date <= end &&
+    (state.community || e.type !== 'community')
+  );
+}
+
+function byVenue(events) {
+  const grouped = new Map();
+  for (const event of events) {
+    if (!grouped.has(event.venueId)) grouped.set(event.venueId, []);
+    grouped.get(event.venueId).push(event);
+  }
+  for (const list of grouped.values()) {
+    list.sort((a, b) => a.date.localeCompare(b.date) ||
+      timeRank(a.times[0]) - timeRank(b.times[0]));
+  }
+  return grouped;
+}
+
+function listingLine(event) {
+  const when = new Date(event.date + 'T12:00:00');
+  const day = DAYS[when.getDay()].slice(0, 3);
+  const times = event.times.map(formatTime).join(', ');
+  const title = event.title + (event.format ? ` <span class="times">${event.format}</span>` : '');
+  return `<li>${title}<br><span class="times">${day} ${times}</span></li>`;
+}
+
+function card(venue, events) {
+  const shown = events.slice(0, 3).map(listingLine).join('');
+  const extra = events.length > 3
+    ? `<li class="more">and ${events.length - 3} more</li>` : '';
+  const link = venue.ticketUrl || venue.website;
+  return `
+    <p class="card-name">${venue.name}</p>
+    <p class="card-where">${venue.city}${venue.county ? ', ' + venue.county + ' County' : ''}</p>
+    <ul class="card-list">${shown}${extra}</ul>
+    ${link ? `<a class="card-link" href="${link}" target="_blank" rel="noopener">Tickets and full schedule →</a>` : ''}
+  `;
+}
+
+function render() {
+  document.getElementById('weekLabel').textContent = weekLabel(state.monday);
+
+  const grouped = byVenue(visibleEvents());
+  layer.clearLayers();
+
+  for (const venue of state.venues) {
+    const events = grouped.get(venue.id);
+    if (!events || !events.length) continue;
+    L.circleMarker([venue.lat, venue.lon], {
+      radius: dotRadius(), color: '#1F3A5F', weight: 1.5,
+      fillColor: '#1F3A5F', fillOpacity: .78
+    })
+      .bindPopup(card(venue, events))
+      .bindTooltip(venue.name, { direction: 'top' })
+      .addTo(layer);
+  }
+
+  const body = document.getElementById('listBody');
+  const entries = state.venues
+    .filter(v => grouped.has(v.id))
+    .map(v => {
+      const events = grouped.get(v.id);
+      const shown = events.slice(0, 3).map(listingLine).join('');
+      const extra = events.length > 3
+        ? `<li class="more">and ${events.length - 3} more</li>` : '';
+      return `<div class="venue-entry">
+                <h3>${v.name}</h3>
+                <div class="where">${v.city}</div>
+                <ul>${shown}${extra}</ul>
+              </div>`;
+    });
+
+  body.innerHTML = entries.length
+    ? entries.join('')
+    : '<p class="more">No listings recorded for this week yet.</p>';
+}
+
+function setUp() {
+  map = L.map('map', {
+    center: [40.03, -75.20], zoom: 10,
+    scrollWheelZoom: false,          // one finger scrolls the parent page
+    tap: true
+  });
+  addTiles(0);
+  layer = L.layerGroup().addTo(map);
+
+  map.on('zoomend', () => layer.eachLayer(l => l.setRadius && l.setRadius(dotRadius())));
+
+  document.getElementById('prevWeek').addEventListener('click', () => {
+    state.monday = addDays(state.monday, -7); render();
+  });
+  document.getElementById('nextWeek').addEventListener('click', () => {
+    state.monday = addDays(state.monday, 7); render();
+  });
+  document.getElementById('showCommunity').addEventListener('change', (e) => {
+    state.community = e.target.checked; render();
+  });
+}
+
+load().then(() => { setUp(); render(); });
+</script>
+</body>
+</html>

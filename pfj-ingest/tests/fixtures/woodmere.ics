@@ -1,0 +1,15 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+UID:1@woodmeremuseum.org
+SUMMARY:Tuesday Nights at the Movies: The Third
+  Man
+DTSTART:20260922T230000Z
+URL:https://woodmeremuseum.org/happenings/film
+END:VEVENT
+BEGIN:VEVENT
+UID:2@woodmeremuseum.org
+SUMMARY:Tuesday Nights at the Movies: Laura
+DTSTART;VALUE=DATE:20260929
+END:VEVENT
+END:VCALENDAR

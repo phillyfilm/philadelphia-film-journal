@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Screening Calendar — The Philadelphia Film Journal</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,400;6..96,600&display=swap">
+
+<style>
+:root {
+  --paper:  #F7F3E9;
+  --ink:    #1A1814;
+  --navy:   #1F3A5F;
+  --rule:   #D5CCB8;
+  --muted:  #6B6255;
+  --sans:   ui-sans-serif, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+*, *::before, *::after { box-sizing: inherit; }
+
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: "The Silver Editorial", "Bodoni Moda", Georgia, "Times New Roman", serif;
+}
+
+header { padding: 1.1rem 1rem .75rem; text-align: center; border-bottom: 1px solid var(--rule); }
+.masthead {
+  margin: 0; font-weight: 600; line-height: 1.1;
+  font-size: clamp(1.5rem, 4.2vw, 2.4rem); letter-spacing: .01em;
+}
+.subhead { margin: .3rem 0 0; font-style: italic; color: var(--muted);
+           font-size: clamp(.82rem, 2vw, 1rem); }
+
+.monthbar {
+  display: flex; align-items: center; justify-content: center; gap: 1rem;
+  padding: .65rem 1rem; border-bottom: 1px solid var(--rule);
+}
+.monthbar button {
+  font: inherit; font-size: 1.1rem; line-height: 1; cursor: pointer;
+  background: none; border: 1px solid var(--rule); border-radius: 2px;
+  color: var(--navy); padding: .3rem .6rem;
+}
+.monthbar button:hover { background: rgba(31,58,95,.07); }
+.monthbar button:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+#monthLabel { font-size: clamp(1rem, 2.6vw, 1.25rem); min-width: 12ch; text-align: center; }
+
+.controls {
+  display: flex; justify-content: center; padding: .5rem 1rem;
+  font-family: var(--sans); font-size: .8rem; color: var(--muted);
+  border-bottom: 1px solid var(--rule);
+}
+.controls label { display: inline-flex; align-items: center; gap: .4rem; cursor: pointer; }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding: 1rem; }
+
+.dow {
+  display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px;
+  font-family: var(--sans); font-size: .7rem; color: var(--muted);
+  text-align: center; padding-bottom: .4rem;
+}
+.grid {
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  gap: 1px; background: var(--rule); border: 1px solid var(--rule);
+}
+.cell {
+  background: var(--paper); min-height: 92px; padding: .35rem .4rem;
+  text-align: left; font: inherit; color: inherit; cursor: pointer;
+  border: 0; border-top: 2px solid transparent;
+}
+.cell:disabled { cursor: default; background: #f2eddf; }
+.cell:hover:not(:disabled) { background: #f1ebda; }
+.cell:focus-visible { outline: 2px solid var(--navy); outline-offset: -2px; }
+.cell[aria-pressed="true"] { border-top-color: var(--navy); background: #f1ebda; }
+.daynum { font-size: .95rem; }
+.cell.today .daynum { font-weight: 600; color: var(--navy); }
+.count {
+  display: block; margin-top: .25rem;
+  font-family: var(--sans); font-size: .68rem; color: var(--muted); line-height: 1.3;
+}
+.peek {
+  display: block; margin-top: .2rem; font-size: .78rem; line-height: 1.25;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink);
+}
+
+#day { margin-top: 1.6rem; }
+#day h2 {
+  margin: 0 0 .1rem; font-size: 1.3rem; font-weight: 600;
+}
+#day .daysub {
+  font-family: var(--sans); font-size: .74rem; color: var(--muted);
+  margin: 0 0 .9rem; padding-bottom: .5rem; border-bottom: 1px solid var(--rule);
+}
+.film { margin: 0 0 1.35rem; padding-bottom: 1.1rem; border-bottom: 1px solid var(--rule); }
+.film:last-child { border-bottom: 0; }
+.film h3 { margin: 0; font-size: 1.12rem; font-weight: 600; line-height: 1.25; }
+.film .meta {
+  font-family: var(--sans); font-size: .72rem; color: var(--muted); margin: .15rem 0 .5rem;
+}
+.film ul { list-style: none; margin: 0; padding: 0; }
+.film li { margin-bottom: .35rem; font-size: .95rem; line-height: 1.45; }
+.film .venue { font-weight: 600; }
+.film .times { font-family: var(--sans); font-size: .78rem; color: var(--navy); }
+.film .note { font-style: italic; color: var(--muted); font-size: .86rem; }
+.film a { color: var(--navy); font-family: var(--sans); font-size: .74rem; }
+.empty { color: var(--muted); font-style: italic; }
+
+.notice {
+  margin: 0; padding: .5rem 1rem; text-align: center;
+  font-family: var(--sans); font-size: .76rem;
+  background: #efe7d2; color: #6a5a34; border-bottom: 1px solid var(--rule);
+}
+.notice[hidden] { display: none; }
+
+footer {
+  padding: 1rem; text-align: center; border-top: 1px solid var(--rule);
+  font-family: var(--sans); font-size: .68rem; color: var(--muted);
+}
+
+@media (max-width: 620px) {
+  .cell { min-height: 62px; }
+  .peek { display: none; }
+  .wrap { padding: .6rem; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1 class="masthead">Philadelphia Film Journal</h1>
+  <p class="subhead">Screening Calendar</p>
+</header>
+
+<p class="notice" id="notice" hidden></p>
+
+<div class="monthbar">
+  <button id="prevMonth" type="button" aria-label="Previous month">&#8592;</button>
+  <span id="monthLabel">Loading…</span>
+  <button id="nextMonth" type="button" aria-label="Next month">&#8594;</button>
+</div>
+
+<div class="controls">
+  <label><input type="checkbox" id="showCommunity"> Include community &amp; outdoor screenings</label>
+</div>
+
+<div class="wrap">
+  <div class="dow"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+  <div class="grid" id="grid"></div>
+  <section id="day"></section>
+</div>
+
+<footer>Screenings at independent, repertory and institutional venues across the five-county region.</footer>
+
+<script>
+/* ------------------------------------------------------------------
+   Time handling. Mirrors pfj_ingest/model.py and the map exactly. A
+   bare hour is afternoon or evening; a morning showing must say
+   "10:30am". Change one, change all three.
+------------------------------------------------------------------- */
+const CLOCK = /^\s*(\d{1,2})\s*(?::\s*(\d{2}))?\s*(?:([ap])\.?\s*m?\.?)?\s*$/i;
+
+function parseTime(value) {
+  if (value == null) return null;
+  const match = String(value).trim().match(CLOCK);
+  if (!match) return null;
+  let hour = parseInt(match[1], 10);
+  const minute = parseInt(match[2] || '0', 10);
+  const meridiem = (match[3] || '').toLowerCase();
+  if (minute > 59) return null;
+  if (meridiem === 'a') {
+    if (hour === 12) hour = 0; else if (hour > 12) return null;
+  } else if (meridiem === 'p') {
+    if (hour < 12) hour += 12; else if (hour > 12) return null;
+  } else {
+    if (hour > 23) return null;
+    if (hour > 0 && hour < 12) hour += 12;
+  }
+  return hour * 60 + minute;
+}
+
+function formatTime(value) {
+  const minutes = parseTime(value);
+  if (minutes === null) return String(value).trim();
+  const hour = Math.floor(minutes / 60), minute = minutes % 60;
+  const suffix = hour < 12 ? 'am' : 'pm';
+  return `${hour % 12 || 12}:${String(minute).padStart(2, '0')}${suffix}`;
+}
+
+function timeRank(value) {
+  const minutes = parseTime(value);
+  return minutes === null ? 10000 : minutes;
+}
+
+/* ------------------------------- dates ------------------------------ */
+const MONTHS = ['January','February','March','April','May','June',
+                'July','August','September','October','November','December'];
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function isoDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function fromIso(text) { return new Date(text + 'T12:00:00'); }
+
+/* ------------------------------- state ------------------------------ */
+const today = new Date();
+const state = {
+  venues: new Map(),
+  events: [],
+  order: new Map(),          // venue id -> publication priority
+  year: today.getFullYear(),
+  month: today.getMonth(),
+  selected: isoDate(today),
+  community: false
+};
+
+function show(message) {
+  const el = document.getElementById('notice');
+  el.textContent = message;
+  el.hidden = !message;
+}
+
+async function load() {
+  try {
+    const [venuesResponse, eventsResponse] = await Promise.all([
+      fetch('data/venues.json', { cache: 'no-cache' }),
+      fetch('data/events.json', { cache: 'no-cache' })
+    ]);
+    if (!venuesResponse.ok || !eventsResponse.ok) throw new Error('data files not found');
+    const venueData = await venuesResponse.json();
+    const eventData = await eventsResponse.json();
+
+    venueData.venues.forEach((v, i) => {
+      state.venues.set(v.id, v);
+      state.order.set(v.id, i);      // workbook order is editorial priority
+    });
+    state.events = (eventData.events || []).filter(e => {
+      const venue = state.venues.get(e.venueId);
+      return venue && venue.inScope;
+    });
+    if (eventData.sample) {
+      show('Sample listings. Real data replaces these once the ingest pipeline has venue credentials.');
+    }
+  } catch (err) {
+    show('Could not load the listings. Opening this file directly from disk won’t work — ' +
+         'serve the folder (python3 -m http.server) or view it on GitHub Pages.');
+  }
+}
+
+/* ------------------------------ grouping ---------------------------- */
+function eventsOn(dateText) {
+  return state.events.filter(e =>
+    e.date === dateText && (state.community || e.type !== 'community')
+  );
+}
+
+function groupByTitle(events) {
+  const groups = new Map();
+  for (const event of events) {
+    const key = event.title.toLowerCase();
+    if (!groups.has(key)) {
+      groups.set(key, { title: event.title, year: event.year,
+                        director: event.director, showings: [] });
+    }
+    const group = groups.get(key);
+    group.year = group.year || event.year;
+    group.director = group.director || event.director;
+    group.showings.push(event);
+  }
+
+  for (const group of groups.values()) {
+    group.showings.sort((a, b) =>
+      (state.order.get(a.venueId) ?? 99) - (state.order.get(b.venueId) ?? 99));
+    group.featured = group.showings.some(s => s.featured);
+    group.rank = Math.min(...group.showings.map(s => state.order.get(s.venueId) ?? 99));
+  }
+
+  // Featured first, then by the venue priority in the workbook, then title.
+  return [...groups.values()].sort((a, b) =>
+    (b.featured - a.featured) || (a.rank - b.rank) || a.title.localeCompare(b.title));
+}
+
+/* ------------------------------ rendering --------------------------- */
+function renderGrid() {
+  document.getElementById('monthLabel').textContent =
+    `${MONTHS[state.month]} ${state.year}`;
+
+  const first = new Date(state.year, state.month, 1);
+  const lead = (first.getDay() + 6) % 7;                 // Monday-start
+  const length = new Date(state.year, state.month + 1, 0).getDate();
+  const todayText = isoDate(today);
+
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  for (let i = 0; i < lead; i++) {
+    const blank = document.createElement('button');
+    blank.className = 'cell';
+    blank.disabled = true;
+    grid.appendChild(blank);
+  }
+
+  for (let day = 1; day <= length; day++) {
+    const dateText = isoDate(new Date(state.year, state.month, day));
+    const events = eventsOn(dateText);
+    const titles = new Set(events.map(e => e.title.toLowerCase())).size;
+
+    const cell = document.createElement('button');
+    cell.className = 'cell' + (dateText === todayText ? ' today' : '');
+    cell.setAttribute('aria-pressed', String(dateText === state.selected));
+    cell.innerHTML =
+      `<span class="daynum">${day}</span>` +
+      (events.length
+        ? `<span class="peek">${events[0].title}</span>
+           <span class="count">${titles} film${titles === 1 ? '' : 's'} · ${events.length} listing${events.length === 1 ? '' : 's'}</span>`
+        : '');
+    cell.addEventListener('click', () => {
+      state.selected = dateText;
+      renderGrid();
+      renderDay();
+      document.getElementById('day').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    grid.appendChild(cell);
+  }
+}
+
+function renderDay() {
+  const panel = document.getElementById('day');
+  const date = fromIso(state.selected);
+  const heading =
+    `${DAYS[date.getDay()]}, ${MONTHS[date.getMonth()]} ${date.getDate()}`;
+
+  const groups = groupByTitle(eventsOn(state.selected));
+  if (!groups.length) {
+    panel.innerHTML = `<h2>${heading}</h2>
+      <p class="daysub">Nothing recorded yet</p>
+      <p class="empty">No screenings on file for this date.</p>`;
+    return;
+  }
+
+  const total = groups.reduce((sum, g) => sum + g.showings.length, 0);
+  const films = groups.map(group => {
+    const meta = [group.year, group.director].filter(Boolean).join(' · ');
+    const rows = group.showings.map(showing => {
+      const venue = state.venues.get(showing.venueId);
+      const times = showing.times.map(formatTime).join(', ');
+      const bits = [
+        `<span class="venue">${venue ? venue.name : showing.venueId}</span>`,
+        times ? `<span class="times">${times}</span>` : '',
+        showing.format ? `<span class="times">${showing.format}</span>` : ''
+      ].filter(Boolean).join(' · ');
+      const note = showing.note ? `<br><span class="note">${showing.note}</span>` : '';
+      const link = showing.url
+        ? ` <a href="${showing.url}" target="_blank" rel="noopener">tickets →</a>` : '';
+      return `<li>${bits}${link}${note}</li>`;
+    }).join('');
+    return `<article class="film">
+              <h3>${group.title}</h3>
+              ${meta ? `<p class="meta">${meta}</p>` : ''}
+              <ul>${rows}</ul>
+            </article>`;
+  }).join('');
+
+  panel.innerHTML = `<h2>${heading}</h2>
+    <p class="daysub">${groups.length} film${groups.length === 1 ? '' : 's'} · ${total} listing${total === 1 ? '' : 's'}</p>
+    ${films}`;
+}
+
+function step(delta) {
+  const date = new Date(state.year, state.month + delta, 1);
+  state.year = date.getFullYear();
+  state.month = date.getMonth();
+  renderGrid();
+}
+
+document.getElementById('prevMonth').addEventListener('click', () => step(-1));
+document.getElementById('nextMonth').addEventListener('click', () => step(1));
+document.getElementById('showCommunity').addEventListener('change', (e) => {
+  state.community = e.target.checked;
+  renderGrid();
+  renderDay();
+});
+
+load().then(() => { renderGrid(); renderDay(); });
+</script>
+</body>
+</html>

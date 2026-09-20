@@ -1,0 +1,59 @@
+[
+  { "id": "manual", "adapter": "manual", "path": "data/manual.csv", "trust": "auto", "enabled": true,
+    "note": "Hand-entered listings. Always trusted; a person wrote them." },
+
+  { "id": "ambler", "venueId": "V011", "adapter": "veezi", "trust": "auto", "enabled": false,
+    "sessionsUrl": "https://api.us.veezi.com/v1/websession",
+    "filmsUrl": "https://api.us.veezi.com/v1/film",
+    "tokenEnv": "VEEZI_TOKEN_AMBLER",
+    "ticketUrl": "https://www.amblertheater.org/",
+    "note": "Renew Theaters. Needs a read-only WebSessions token from Renew." },
+
+  { "id": "county", "venueId": "V012", "adapter": "veezi", "trust": "auto", "enabled": false,
+    "sessionsUrl": "https://api.us.veezi.com/v1/websession",
+    "filmsUrl": "https://api.us.veezi.com/v1/film",
+    "tokenEnv": "VEEZI_TOKEN_COUNTY",
+    "ticketUrl": "https://countytheater.org/" },
+
+  { "id": "hiway", "venueId": "V013", "adapter": "veezi", "trust": "auto", "enabled": false,
+    "sessionsUrl": "https://api.us.veezi.com/v1/websession",
+    "filmsUrl": "https://api.us.veezi.com/v1/film",
+    "tokenEnv": "VEEZI_TOKEN_HIWAY",
+    "ticketUrl": "https://www.hiwaytheater.org/" },
+
+  { "id": "bmfi", "venueId": "V010", "adapter": "agile", "trust": "auto", "enabled": false,
+    "url": "https://REPLACE-WITH-AGILE-HOST/api/events?organizationId=REPLACE",
+    "tokenEnv": "AGILE_KEY_BMFI", "tokenHeader": "x-api-key",
+    "ticketUrl": "https://brynmawrfilm.org/",
+    "note": "Agile Ticketing. Ask BMFI's box office for read-only event and showing access." },
+
+  { "id": "pfs", "venueId": "V001", "adapter": "agile", "trust": "auto", "enabled": false,
+    "url": "https://REPLACE-WITH-AGILE-HOST/api/events?organizationId=REPLACE",
+    "tokenEnv": "AGILE_KEY_PFS", "tokenHeader": "x-api-key",
+    "ticketUrl": "https://filmadelphia.org/showtimes-calendar-view/",
+    "note": "One PFS credential likely covers Center, Bourse and East. The shared monthly grid does not name the house; the per-film page (filmadelphia.org/movies/<title>/) does. If the payload names it, split in the adapter and set venueId per event." },
+
+  { "id": "colonial", "venueId": "V015", "adapter": "agile", "trust": "auto", "enabled": false,
+    "url": "https://REPLACE-WITH-AGILE-HOST/api/events?organizationId=REPLACE",
+    "tokenEnv": "AGILE_KEY_COLONIAL", "tokenHeader": "x-api-key",
+    "ticketUrl": "https://thecolonialtheatre.com/" },
+
+  { "id": "philamoca", "venueId": "V006", "adapter": "tribe", "trust": "review", "enabled": false,
+    "url": "https://www.philamoca.org/wp-json/tribe/events/v1/events",
+    "ticketUrl": "https://www.philamoca.org/",
+    "note": "Check the URL in a browser first. If it returns JSON, this is the whole integration." },
+
+  { "id": "woodmere", "venueId": "V008", "adapter": "ics", "trust": "review", "enabled": false,
+    "url": "https://REPLACE-WITH-ICS-FEED",
+    "ticketUrl": "https://woodmeremuseum.org/happenings/film",
+    "note": "Follow the site's subscribe or add-to-calendar link; that URL is the feed." },
+
+  { "id": "newtown", "venueId": "V016", "adapter": "jsonld", "trust": "review", "enabled": false,
+    "url": "https://www.thenewtowntheatre.com/",
+    "ticketUrl": "https://www.thenewtowntheatre.com/" },
+
+  { "id": "lightbox", "venueId": "V005", "adapter": "jsonld", "trust": "review", "enabled": false,
+    "url": "https://www.lightboxfilmcenter.org/",
+    "ticketUrl": "https://events.ticketleap.com/events/lightbox-film-center",
+    "note": "TicketLeap listings are JS-rendered and return nothing to a plain fetch. Expect to hand-enter Lightbox until they expose a feed." }
+]

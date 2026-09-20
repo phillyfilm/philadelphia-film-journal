@@ -1,0 +1,8 @@
+{
+  "venuesFile": "data/venues.json",
+  "timezone": "America/New_York",
+  "consumers": [
+    { "name": "calendar", "events": "../pfj-calendar/data/events.json" },
+    { "name": "map",      "events": "../pfj-map/data/events.json" }
+  ]
+}
