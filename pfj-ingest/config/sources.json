@@ -38,7 +38,7 @@
     "tokenEnv": "AGILE_KEY_COLONIAL", "tokenHeader": "x-api-key",
     "ticketUrl": "https://thecolonialtheatre.com/" },
 
-  { "id": "philamoca", "venueId": "V006", "adapter": "tribe", "trust": "review", "enabled": false,
+  { "id": "philamoca", "venueId": "V006", "adapter": "tribe", "trust": "review", "enabled": true,
     "url": "https://www.philamoca.org/wp-json/tribe/events/v1/events",
     "ticketUrl": "https://www.philamoca.org/",
     "note": "Check the URL in a browser first. If it returns JSON, this is the whole integration." },
@@ -48,7 +48,7 @@
     "ticketUrl": "https://woodmeremuseum.org/happenings/film",
     "note": "Follow the site's subscribe or add-to-calendar link; that URL is the feed." },
 
-  { "id": "newtown", "venueId": "V016", "adapter": "jsonld", "trust": "review", "enabled": false,
+  { "id": "newtown", "venueId": "V016", "adapter": "jsonld", "trust": "review", "enabled": true,
     "url": "https://www.thenewtowntheatre.com/",
     "ticketUrl": "https://www.thenewtowntheatre.com/" },
 
