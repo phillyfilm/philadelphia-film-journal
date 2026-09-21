@@ -1,0 +1,55 @@
+name: Nightly listings ingest
+
+on:
+  schedule:
+    - cron: "0 7 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ingest
+  cancel-in-progress: false
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run the tests
+        working-directory: pfj-ingest
+        run: |
+          pip install pytest
+          python -m pytest tests -q
+
+      - name: Pull listings and publish
+        working-directory: pfj-ingest
+        env:
+          VEEZI_TOKEN_AMBLER:  ${{ secrets.VEEZI_TOKEN_AMBLER }}
+          VEEZI_TOKEN_COUNTY:  ${{ secrets.VEEZI_TOKEN_COUNTY }}
+          VEEZI_TOKEN_HIWAY:   ${{ secrets.VEEZI_TOKEN_HIWAY }}
+          AGILE_KEY_BMFI:      ${{ secrets.AGILE_KEY_BMFI }}
+          AGILE_KEY_PFS:       ${{ secrets.AGILE_KEY_PFS }}
+          AGILE_KEY_COLONIAL:  ${{ secrets.AGILE_KEY_COLONIAL }}
+        run: python -m pfj_ingest run
+
+      - name: Commit the new listings
+        run: |
+          git config user.name  "PFJ ingest"
+          git config user.email "actions@github.com"
+          git add pfj-calendar/data pfj-map/data pfj-ingest/data
+          if git diff --staged --quiet; then
+            echo "Nothing changed."
+          else
+            git commit -m "Listings: $(date -u +%Y-%m-%d)"
+            git push
+          fi
